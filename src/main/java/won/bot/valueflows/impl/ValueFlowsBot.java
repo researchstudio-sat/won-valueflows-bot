@@ -1,7 +1,8 @@
-package won.bot.skeleton.impl;
+package won.bot.valueflows.impl;
 
 import java.lang.invoke.MethodHandles;
 import java.net.URI;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +27,12 @@ import won.bot.framework.extensions.matcher.MatcherBehaviour;
 import won.bot.framework.extensions.matcher.MatcherExtension;
 import won.bot.framework.extensions.matcher.MatcherExtensionAtomCreatedEvent;
 import won.bot.framework.extensions.serviceatom.ServiceAtomBehaviour;
+import won.bot.framework.extensions.serviceatom.ServiceAtomContent;
 import won.bot.framework.extensions.serviceatom.ServiceAtomExtension;
-import won.bot.skeleton.action.MatcherExtensionAtomCreatedAction;
-import won.bot.skeleton.context.SkeletonBotContextWrapper;
+import won.bot.valueflows.action.MatcherExtensionAtomCreatedAction;
+import won.bot.valueflows.context.ValueFlowsBotContextWrapper;
 
-public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAtomExtension {
+public class ValueFlowsBot extends EventBot implements MatcherExtension, ServiceAtomExtension {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private int registrationMatcherRetryInterval;
     private MatcherBehaviour matcherBehaviour;
@@ -54,19 +56,24 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
     @Override
     protected void initializeEventListeners() {
         EventListenerContext ctx = getEventListenerContext();
-        if (!(getBotContextWrapper() instanceof SkeletonBotContextWrapper)) {
-            logger.error(getBotContextWrapper().getBotName() + " does not work without a SkeletonBotContextWrapper");
+        if (!(getBotContextWrapper() instanceof ValueFlowsBotContextWrapper)) {
+            logger.error(getBotContextWrapper().getBotName() + " does not work without a ValueFlowsBotContextWrapper");
             throw new IllegalStateException(
-                            getBotContextWrapper().getBotName() + " does not work without a SkeletonBotContextWrapper");
+                            getBotContextWrapper().getBotName() + " does not work without a ValueFlowsBotContextWrapper");
         }
         EventBus bus = getEventBus();
-        SkeletonBotContextWrapper botContextWrapper = (SkeletonBotContextWrapper) getBotContextWrapper();
+        ValueFlowsBotContextWrapper botContextWrapper = (ValueFlowsBotContextWrapper) getBotContextWrapper();
         // register listeners for event.impl.command events used to tell the bot to send
         // messages
         ExecuteWonMessageCommandBehaviour wonMessageCommandBehaviour = new ExecuteWonMessageCommandBehaviour(ctx);
         wonMessageCommandBehaviour.activate();
+
+        ServiceAtomContent serviceAtomContent = new ServiceAtomContent("ValueFlows Helper Service");
+        serviceAtomContent.setDescription("This Bot is used to do something with ValueFlows and resources or whatever...");
+        serviceAtomContent.setTags(Arrays.asList("Bot", "Service"));
+
         // activate ServiceAtomBehaviour
-        serviceAtomBehaviour = new ServiceAtomBehaviour(ctx);
+        serviceAtomBehaviour = new ServiceAtomBehaviour(ctx, serviceAtomContent);
         serviceAtomBehaviour.activate();
         // set up matching extension
         // as this is an extension, it can be activated and deactivated as needed
@@ -85,7 +92,7 @@ public class SkeletonBot extends EventBot implements MatcherExtension, ServiceAt
                 EventListenerContext ctx = getEventListenerContext();
                 ConnectFromOtherAtomEvent connectFromOtherAtomEvent = (ConnectFromOtherAtomEvent) event;
                 try {
-                    String message = "Hello i am the BotSkeleton i will send you a message everytime an atom is created...";
+                    String message = "Hello i am the ValueFlowsBot i will send you a message everytime an atom is created...";
                     final ConnectCommandEvent connectCommandEvent = new ConnectCommandEvent(
                                     connectFromOtherAtomEvent.getRecipientSocket(),
                                     connectFromOtherAtomEvent.getSenderSocket(), message);
